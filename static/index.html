@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Text-to-Speech API Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        textarea, select, input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+        
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            opacity: 0.7;
+        }
+        
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .audio-container {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border: 2px dashed #e2e8f0;
+        }
+        
+        .audio-container.has-audio {
+            background: linear-gradient(135deg, #f0fff4 0%, #f0f9ff 100%);
+            border-color: #48bb78;
+        }
+        
+        audio {
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #e53e3e;
+        }
+        
+        .success {
+            background: #c6f6d5;
+            color: #2d7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #48bb78;
+        }
+        
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .range-value {
+            min-width: 40px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .api-url {
+            font-size: 14px;
+            color: #718096;
+            background: #edf2f7;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Gemini TTS API</h1>
+        
+        <form id="ttsForm">
+            <div class="form-group">
+                <label for="text">Text to Convert:</label>
+                <textarea 
+                    id="text" 
+                    name="text" 
+                    placeholder="Enter the text you want to convert to speech..."
+                    required
+                >Hello! I am interested in the future of the day. This is a demonstration of the Gemini text-to-speech API integration.</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="voice">Voice:</label>
+                <select id="voice" name="voice">
+                    <option value="Enceladus">Enceladus</option>
+                    <option value="Puck">Puck</option>
+                    <option value="Charon">Charon</option>
+                    <option value="Kore">Kore</option>
+                    <option value="Fenrir">Fenrir</option>
+                    <option value="Aoede">Aoede</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="temperature">Temperature:</label>
+                <div class="range-container">
+                    <input 
+                        type="range" 
+                        id="temperature" 
+                        name="temperature" 
+                        min="0" 
+                        max="2" 
+                        step="0.1" 
+                        value="1.0"
+                    >
+                    <span class="range-value" id="temperatureValue">1.0</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="apiUrl">API Base URL:</label>
+                <input type="text" id="apiUrl" value="http://localhost:5000" placeholder="http://your-api-url">
+                <div class="api-url">Make sure your Flask API is running on this URL</div>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn-primary" id="generateBtn">
+                    Generate Speech
+                </button>
+                <button type="button" class="btn-secondary" id="downloadBtn" disabled>
+                    Download Audio
+                </button>
+            </div>
+        </form>
+        
+        <div id="result"></div>
+        
+        <div id="audioContainer" class="audio-container" style="display: none;">
+            <h3>Generated Audio:</h3>
+            <audio id="audioPlayer" controls></audio>
+        </div>
+    </div>
+
+    <script>
+        let currentAudioData = null;
+        let currentMimeType = null;
+        
+        // Update temperature display
+        document.getElementById('temperature').addEventListener('input', function() {
+            document.getElementById('temperatureValue').textContent = this.value;
+        });
+        
+        // Form submission
+        document.getElementById('ttsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {
+                text: formData.get('text'),
+                voice: formData.get('voice'),
+                temperature: parseFloat(formData.get('temperature'))
+            };
+            
+            const apiUrl = document.getElementById('apiUrl').value;
+            const generateBtn = document.getElementById('generateBtn');
+            const resultDiv = document.getElementById('result');
+            const audioContainer = document.getElementById('audioContainer');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            // Reset UI
+            resultDiv.innerHTML = '';
+            audioContainer.style.display = 'none';
+            downloadBtn.disabled = true;
+            
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.classList.add('loading');
+            generateBtn.textContent = '';
+            
+            try {
+                const response = await fetch(`${apiUrl}/api/text-to-speech`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Convert base64 to blob and create audio URL
+                    const audioData = atob(result.audio_data);
+                    const audioArray = new Uint8Array(audioData.length);
+                    for (let i = 0; i < audioData.length; i++) {
+                        audioArray[i] = audioData.charCodeAt(i);
+                    }
+                    
+                    const blob = new Blob([audioArray], { type: result.mime_type });
+                    const audioUrl = URL.createObjectURL(blob);
+                    
+                    // Store for download
+                    currentAudioData = blob;
+                    currentMimeType = result.mime_type;
+                    
+                    // Display audio player
+                    const audioPlayer = document.getElementById('audioPlayer');
+                    audioPlayer.src = audioUrl;
+                    audioContainer.style.display = 'block';
+                    audioContainer.classList.add('has-audio');
+                    
+                    // Enable download button
+                    downloadBtn.disabled = false;
+                    
+                    resultDiv.innerHTML = '<div class="success">✅ Audio generated successfully!</div>';
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Error: ${result.error}</div>`;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            } finally {
+                // Reset button state
+                generateBtn.disabled = false;
+                generateBtn.classList.remove('loading');
+                generateBtn.textContent = 'Generate Speech';
+            }
+        });
+        
+        // Download functionality
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (currentAudioData) {
+                const url = URL.createObjectURL(currentAudioData);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `speech_${Date.now()}.wav`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+        
+        // Test API connection on page load
+        window.addEventListener('load', async function() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            try {
+                const response = await fetch(`${apiUrl}/health`);
+                if (response.ok) {
+                    console.log('✅ API connection successful');
+                } else {
+                    console.warn('⚠️ API health check failed');
+                }
+            } catch (error) {
+                console.warn('⚠️ Could not connect to API:', error.message);
+            }
+        });
+    </script>
+</body>
+</html>
